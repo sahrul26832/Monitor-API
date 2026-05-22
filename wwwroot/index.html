@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Gateway Monitor Dashboard</title>
+
+    <!-- jQuery DataTable CSS -->
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css">
+
+    <!-- Local Styles -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body>
+    <header class="dashboard-header">
+        <h1>API Gateway Monitor Dashboard</h1>
+    </header>
+
+    <main class="dashboard-main">
+        <!-- Tab Navigation -->
+        <nav class="tab-navigation" role="tablist">
+            <button class="tab-btn active" data-tab="request-monitor" role="tab" aria-selected="true"
+                aria-controls="request-monitor-panel">
+                Request Monitor
+            </button>
+            <button class="tab-btn" data-tab="error-handler" role="tab" aria-selected="false"
+                aria-controls="error-handler-panel">
+                Error Handler
+            </button>
+        </nav>
+
+        <!-- Request Monitor Tab Content -->
+        <section id="request-monitor-panel" class="tab-content active" role="tabpanel"
+            aria-labelledby="request-monitor-tab">
+            <div class="filter-controls" id="request-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-http-method">HTTP Method</label>
+                        <select id="filter-http-method">
+                            <option value="">All Methods</option>
+                            <option value="GET">GET</option>
+                            <option value="POST">POST</option>
+                            <option value="PUT">PUT</option>
+                            <option value="DELETE">DELETE</option>
+                            <option value="PATCH">PATCH</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-status">Status</label>
+                        <select id="filter-status">
+                            <option value="">All Statuses</option>
+                            <option value="SUCCESS">SUCCESS</option>
+                            <option value="ERROR">ERROR</option>
+                            <option value="PENDING">PENDING</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-url">URL</label>
+                        <input type="text" id="filter-url" placeholder="Search URL...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-date-from">Date From</label>
+                        <input type="date" id="filter-date-from">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-date-to">Date To</label>
+                        <input type="date" id="filter-date-to">
+                    </div>
+                    <div class="filter-group filter-actions">
+                        <button id="clear-request-filters" class="btn-clear-filter">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="requestTable" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>AppName</th>
+                            <th>Application</th>
+                            <th>URL</th>
+                            <th>HTTP Method</th>
+                            <th>Headers</th>
+                            <th>Body</th>
+                            <th>Client IP</th>
+                            <th>Timestamp</th>
+                            <th>Status</th>
+                            <th>Response Time</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Error Handler Tab Content -->
+        <section id="error-handler-panel" class="tab-content" role="tabpanel" aria-labelledby="error-handler-tab"
+            hidden>
+            <div class="filter-controls" id="error-filters">
+                <div class="filter-row">
+                    <div class="filter-group">
+                        <label for="filter-error-category">Error Category</label>
+                        <select id="filter-error-category">
+                            <option value="">All Categories</option>
+                            <option value="CLIENT_ERROR">CLIENT_ERROR</option>
+                            <option value="SERVER_ERROR">SERVER_ERROR</option>
+                            <option value="TIMEOUT_ERROR">TIMEOUT_ERROR</option>
+                            <option value="CONNECTION_ERROR">CONNECTION_ERROR</option>
+                            <option value="GATEWAY_ERROR">GATEWAY_ERROR</option>
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-error-code">Error Code</label>
+                        <input type="text" id="filter-error-code" placeholder="Search Error Code...">
+                    </div>
+                    <div class="filter-group">
+                        <label for="filter-resolved">Resolved Status</label>
+                        <select id="filter-resolved">
+                            <option value="">All</option>
+                            <option value="true">Resolved</option>
+                            <option value="false">Unresolved</option>
+                        </select>
+                    </div>
+                    <div class="filter-group filter-actions">
+                        <button id="clear-error-filters" class="btn-clear-filter">Clear Filters</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="table-container">
+                <table id="errorTable" class="display" style="width:100%">
+                    <thead>
+                        <tr>
+                            <th>Error Code</th>
+                            <th>Message</th>
+                            <th>Stack Trace</th>
+                            <th>Error Timestamp</th>
+                            <th>Error Category</th>
+                            <th>Resolved</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <!-- Resend Confirmation Modal -->
+    <div id="resend-modal" class="modal" hidden>
+        <div class="modal-overlay"></div>
+        <div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+            <h2 id="modal-title">Confirm Resend</h2>
+            <div id="modal-request-details" class="modal-details"></div>
+            <div class="modal-actions">
+                <button id="modal-confirm" class="btn-confirm">Resend</button>
+                <button id="modal-cancel" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Area -->
+    <div id="notification-area" class="notification-area" aria-live="polite"></div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <!-- jQuery DataTable JS -->
+    <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
+    <!-- Application Logic (no more mock-data.js) -->
+    <script src="app.js?v=2"></script>
+</body>
+
+</html>
