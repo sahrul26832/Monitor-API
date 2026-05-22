@@ -1,0 +1,7 @@
+name = "monitor-api"
+compatibility_date = "2025-05-01"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "monitor-db"
+database_id = "YOUR_D1_DATABASE_ID"
